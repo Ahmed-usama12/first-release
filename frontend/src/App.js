@@ -41,6 +41,7 @@ function App() {
     return (
         <div style={{ padding: "20px", fontFamily: "Arial, sans-serif" }}>
             <h1>CSV Cleaner</h1>
+            <h1>Test</h1>
             <input type="file" accept=".csv" onChange={handleFileChange} />
             <br />
             <button onClick={handleUpload} disabled={loading}>
