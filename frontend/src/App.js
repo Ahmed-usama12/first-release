@@ -8,6 +8,7 @@ import Home from "./components/Home/Home";
 
 function App() {
     return (
+
         <UploadProvider>
             <Router>
                 <Routes>
@@ -19,6 +20,7 @@ function App() {
                 </Routes>
             </Router>
         </UploadProvider>
+
     );
 }
 
