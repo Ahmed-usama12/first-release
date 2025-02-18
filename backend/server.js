@@ -1,51 +1,79 @@
-const express = require('express');
-const multer = require('multer');
-const axios = require('axios');
-const path = require('path');
-const fs = require('fs');
-const cors = require('cors');
-const FormData = require('form-data');
+const express = require("express");
+const axios = require("axios");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+const PORT = process.env.PORT || 5000;
+const ML_SERVICE_URL = process.env.ML_SERVICE_URL || "http://localhost:5001";
 
-// Enable CORS
+app.use(express.json());
 app.use(cors());
 
-app.post('/clean_csv', upload.single('file'), async (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
+// ✅ Endpoint to process RFM segmentation and return model training status + customer segmentation data
+app.post("/api/process_rfm", async (req, res) => {
+	try {
+		const response = await axios.post(
+			`${ML_SERVICE_URL}/process_rfm`,
+			req.body
+		);
 
-    console.log("File uploaded:", req.file);
+		// ✅ Extract necessary data from the response
+		const { message, segmented_customers, triggers } = response.data;
 
-    try {
-        const filePath = req.file.path;
-        const formData = new FormData();
-        formData.append('file', fs.createReadStream(filePath), {
-            filename: req.file.originalname,
-            contentType: req.file.mimetype,
-        });
-
-        console.log("Sending file to ML API for cleaning...");
-
-        const mlResponse = await axios.post('http://localhost:5000/clean_csv', formData, {
-            headers: {
-                ...formData.getHeaders(),
-            },
-        });
-
-        console.log("ML API Response received.");
-
-        // Send the cleaned JSON data back to the client
-        res.json({ cleaned_data: mlResponse.data.cleaned_data });
-    } catch (error) {
-        console.error("Backend error:", error);
-        res.status(500).json({ error: 'Error processing file' });
-    }
+		res.json({
+			message: message || "Model trained successfully",
+			segmented_customers: segmented_customers || [],
+			triggers: triggers || [],
+		});
+	} catch (error) {
+		console.error("Error processing RFM segmentation:", error.message);
+		res.status(500).json({ error: "Failed to process RFM segmentation" });
+	}
 });
 
-app.listen(5001, () => {
-    console.log('Backend server running on port 5001');
+// ✅ Endpoint to predict customer purchase
+app.post("/api/predict_purchase", async (req, res) => {
+	try {
+		const response = await axios.post(
+			`${ML_SERVICE_URL}/predict_purchase`,
+			req.body
+		);
+		res.json(response.data);
+	} catch (error) {
+		console.error("Error predicting purchase:", error.message);
+		res.status(500).json({ error: "Failed to predict purchase" });
+	}
 });
 
+// ✅ Endpoint to add a new customer and return behavioral trigger
+app.post("/api/add_customer", async (req, res) => {
+	try {
+		const response = await axios.post(
+			`${ML_SERVICE_URL}/add_customer`,
+			req.body
+		);
+		res.json(response.data);
+	} catch (error) {
+		console.error("Error adding customer:", error.message);
+		res.status(500).json({ error: "Failed to add customer" });
+	}
+});
+
+// ✅ Endpoint to calculate monthly revenue
+app.post("/api/calculate_monthly_revenue", async (req, res) => {
+	try {
+		const response = await axios.post(
+			`${ML_SERVICE_URL}/calculate_monthly_revenue`,
+			req.body
+		);
+		res.json(response.data);
+	} catch (error) {
+		console.error("Error calculating monthly revenue:", error.message);
+		res.status(500).json({ error: "Failed to calculate monthly revenue" });
+	}
+});
+
+app.listen(PORT, () => {
+	console.log(`Node.js backend running on port ${PORT}`);
+});
