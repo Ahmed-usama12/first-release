@@ -1,21 +1,20 @@
-import React, { useContext, useEffect } from "react";
-import { UploadContext } from "../../context/UploadContext";
+import React from "react";
+import PieChart from "../charts/PieChart";
+import BarChart from "../charts/BarChart";
 
 export default function Dashboard() {
-    const { rfmData } = useContext(UploadContext);
-
-    useEffect(() => {
-        console.log("Dashboard Loaded - RFM Data:", rfmData);
-    }, [rfmData]); // تشغيل عند تغيير البيانات
-
-    return (
-        <div>
-            <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
-            {rfmData ? (
-                <pre className="bg-gray-200 p-4 rounded">{JSON.stringify(rfmData, null, 2)}</pre>
-            ) : (
-                <p>No data available. Please upload a file first.</p>
-            )}
+    return <>
+        <h1 className="text-3xl font-bold  mb-8">Dashboard</h1>
+        <div className="p-6 max-w-7xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 shadow-lg rounded-xl flex justify-center items-center">
+                    <PieChart />
+                </div>
+                <div className="bg-white p-8 shadow-lg rounded-xl flex justify-center items-center">
+                    <BarChart />
+                </div>
+            </div>
         </div>
-    );
+    </>
+
 }
