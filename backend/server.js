@@ -20,7 +20,7 @@ const sendFileToFlask = async (filePath, originalname, mimetype, endpoint) => {
         contentType: mimetype,
     });
 
-    const response = await axios.post(`http://localhost:5000/${endpoint}`, formData, {
+    const response = await axios.post(http://localhost:5000/${endpoint}, formData, {
         headers: {
             ...formData.getHeaders(),
         },
@@ -249,7 +249,7 @@ app.listen(5001, () => {
 //         contentType: mimetype,
 //     });
 
-//     const response = await axios.post(`http://localhost:5000/${endpoint}`, formData, {
+//     const response = await axios.post(http://localhost:5000/${endpoint}, formData, {
 //         headers: {
 //             ...formData.getHeaders(),
 //         },
