@@ -5,21 +5,28 @@ import Navbar from './components/navbar/navbar';
 import Home from './components/home/home';
 import UserData from './components/user-data/user-data';
 import SendEmails from './components/send-emails/send-emails';
-import Footer from './components/Footer/footer'
+import Footer from './components/Footer/footer';
 import Analysis from './components/analysis/analysis';
+import { Chart } from 'chart.js';
+import { MatrixController, MatrixElement } from 'chartjs-chart-matrix';
+import Dashboard from './components/dashboard/Dashboard';
+
+// تسجيل الـ Matrix Controller والـ Element
+Chart.register(MatrixController, MatrixElement);
 
 function App() {
   return (
     <UserContextProvider>
       <Router>
-        <Navbar/>
+        <Navbar />
         <Routes>
           <Route element={<Home />} path='/' />
           <Route element={<Analysis />} path='/analysis' />
           <Route element={<UserData />} path='/user-data' />
-          <Route element={<SendEmails />} path='/send-emails' />/
+          <Route element={<SendEmails />} path='/send-emails' />
+          <Route element={<Dashboard />} path='/dashboard' />
         </Routes>
-       <Footer/>
+        <Footer />
       </Router>
     </UserContextProvider>
   );

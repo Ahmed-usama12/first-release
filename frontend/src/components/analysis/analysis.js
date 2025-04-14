@@ -1,9 +1,11 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import axios from "axios";
 import ChartWrapper from "../chart-wrapper/chart-wrapper";
 import { Bar, Line, Pie } from 'react-chartjs-2';
-import { barChart, lineChart, pieChart } from '../../utils/utils';
+import { Chart as ChartJS } from 'chart.js';
+import { barChart, lineChart, pieChart, heatmapChart } from '../../utils/utils';
 import 'chart.js/auto';
+import 'chartjs-chart-matrix';
 import { UserContext } from '../../Context/data-context';
 import { motion } from 'framer-motion';
 import { FiUploadCloud } from 'react-icons/fi';
@@ -12,6 +14,7 @@ function Analysis() {
   const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const heatmapRef = useRef(null);
 
   const { rfmData, setRfmData } = useContext(UserContext);
 
@@ -22,7 +25,8 @@ function Analysis() {
     topCustomers,
     topProducts,
     geographicalRevenue,
-    monthlyCustomerAcquisition
+    monthlyCustomerAcquisition,
+    heatmapData,
   } = rfmData;
 
   const handleFileChange = (e) => {
@@ -70,10 +74,16 @@ function Analysis() {
       const geographicalRevenueResponse = await axios.post("http://localhost:5001/geographical_analysis", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      const test = await axios.post("http://localhost:5001/customer_activity_heatmap", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      console.log(test.data);
+
       const monthlyCustomerAcquisitionResponse = await axios.post("http://localhost:5001/monthly_customer_acquisition", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      console.log(monthlyCustomerAcquisitionResponse.data.monthly_acquisition)
+
       setRfmData({
         segmentData: rfmResponse.data.segment_data,
         monthlyRevenue: revenueResponse.data.monthly_revenue,
@@ -81,7 +91,8 @@ function Analysis() {
         topCustomers: topCustomersResponse.data.top_customers,
         topProducts: topProductsResponse.data.top_products,
         geographicalRevenue: geographicalRevenueResponse.data.geographical_revenue,
-        monthlyCustomerAcquisition:monthlyCustomerAcquisitionResponse.data.monthly_acquisition
+        monthlyCustomerAcquisition: monthlyCustomerAcquisitionResponse.data.monthly_acquisition,
+        // heatmapData: test.data,
       });
 
     } catch (err) {
@@ -107,7 +118,8 @@ function Analysis() {
     monthlyRevenue?.map(item => item.TotalPrice),
     "Monthly revenue"
   ) : null;
-  const monthlyCustomerAcquisitionLine = monthlyCustomerAcquisition? lineChart(
+
+  const monthlyCustomerAcquisitionLine = monthlyCustomerAcquisition ? lineChart(
     monthlyCustomerAcquisition?.map(item => item.YearMonth),
     monthlyCustomerAcquisition?.map(item => item.newCustomers),
     "New customers for each month"
@@ -135,10 +147,9 @@ function Analysis() {
     ? Object.keys(dailyRevenue).map((month) => {
       const days = Object.keys(dailyRevenue[month]);
       const revenues = days.map((day) => dailyRevenue[month][day]);
-
       return {
         month,
-        data: barChart(days, revenues, `Daily Revenue (Bar) for ${month}`, '#6C9BCF'), 
+        data: barChart(days, revenues, `Daily Revenue (Bar) for ${month}`),
       };
     })
     : [];
@@ -147,13 +158,38 @@ function Analysis() {
     ? Object.keys(dailyRevenue).map((month) => {
       const days = Object.keys(dailyRevenue[month]);
       const revenues = days.map((day) => dailyRevenue[month][day]);
-
       return {
         month,
-        data: lineChart(days, revenues, `Daily Revenue (Line) for ${month}`, '#FF6B6B'), // Soft red for line
+        data: lineChart(days, revenues, `Daily Revenue (Line) for ${month}`),
       };
     })
     : [];
+
+  // const heatmap = heatmapData ? heatmapChart(heatmapData) : null;
+
+  // useEffect(() => {
+  //   if (heatmapData && heatmapRef.current) {
+  //     const ctx = heatmapRef.current.getContext('2d');
+  //     // تدمير الـ Chart القديم لو موجود
+  //     if (heatmapRef.current.chart) {
+  //       heatmapRef.current.chart.destroy();
+  //     }
+  //     // إنشاء الـ Heatmap الجديدة
+  //     heatmapRef.current.chart = new ChartJS(ctx, {
+  //       type: 'matrix',
+  //       data: heatmap,
+  //       options: heatmap.options
+  //     });
+  //   }
+
+    // Cleanup
+  //   return () => {
+  //     if (heatmapRef.current?.chart) {
+  //       heatmapRef.current.chart.destroy();
+  //     }
+  //   };
+  // }, [heatmapData]);
+
   return (
     <motion.div
       style={{
@@ -245,6 +281,14 @@ function Analysis() {
           </motion.p>
         )}
 
+        {/* Heatmap كأول Chart
+        {heatmapData && (
+          <div style={{ marginBottom: '30px' }}>
+            <h2 style={{ textAlign: 'center', color: '#4e79a7' }}>Customer Activity Heatmap</h2>
+            <canvas ref={heatmapRef} style={{ maxHeight: '400px', width: '100%' }} />
+          </div>
+        )} */}
+
         {monthlyCustomerAcquisition && (
           <ChartWrapper title="New customers for each month" ChartComponent={Line} data={monthlyCustomerAcquisitionLine} />
         )}
@@ -287,3 +331,4 @@ function Analysis() {
 }
 
 export default Analysis;
+
